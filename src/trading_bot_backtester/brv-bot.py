@@ -51,7 +51,7 @@ def is_buy(stock, data, portfolio) -> bool:
     ):
         return False
 
-    mean_buy_price = price if len(stock.positions) == 0 else min(stock.positions)
+    mean_buy_price = price if len(portfolio.positions()[stock.symbol]) == 0 else min(portfolio.positions()[stock.symbol])
     current_allocation = portfolio.allocation(stock.symbol)
     target_allocation = backtester.targets.get(stock.symbol, 0)
 
@@ -73,8 +73,8 @@ def is_buy(stock, data, portfolio) -> bool:
 def is_sell(stock, data, portfolio) -> bool:
     if (
         len(data) == 0
-        or stock.symbol not in portfolio.stocks
-        or portfolio.stocks[stock.symbol]["shares"] == 0
+        or stock.symbol not in portfolio.positions()
+        or portfolio.positions()[stock.symbol] == 0
     ):
         return False
 
@@ -113,7 +113,11 @@ def calculate_sharpe_ratio(returns, risk_free_rate=0.02):
 
 
 if __name__ == "__main__":
-    # ... (no changes to the initialization code)
+    start_date = "2022-01-01"
+    end_date = "2023-03-01"
+    stocks = {"BRK-B": 0.7, "TSLA": 0.3}
+    capital = 10000
+    interval = "1d"
 
     # Initialize the Backtester object and perform the backtest
     backtester = Backtester(stocks, start_date, end_date, "1d")

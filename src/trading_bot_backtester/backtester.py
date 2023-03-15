@@ -50,20 +50,23 @@ class Portfolio:
 
 
 class Backtester:
-    def __init__(self, targets: Dict[str, float]):
+    def __init__(self, targets: Dict[str, float], start_date: str, end_date: str, interval: str):
         self.targets = targets
+        self.start_date = start_date
+        self.end_date = end_date
+        self.interval = interval
+        self.stocks = {symbol: Stock(symbol) for symbol in targets.keys()}
 
     def backtest(
         self, starting_amount: float, buy_fn: Callable, sell_fn: Callable
     ) -> Tuple[float, List[float]]:
-        stocks = {symbol: Stock(symbol) for symbol in self.targets.keys()}
         portfolio = Portfolio(starting_amount)
-
         daily_returns = []
+        prev_value = starting_amount
 
         for date in self.stocks[next(iter(self.stocks))].data.index:
-            for symbol, stock in stocks.items():
-                stock_data = stock.get_stock_data(start_date, end_date, interval)
+            for symbol, stock in self.stocks.items():
+                stock_data = stock.get_stock_data(self.start_date, self.end_date, self.interval)
                 stock_price = stock_data.loc[:date, "Open"][-1]
 
                 if sell_fn(stock_data, portfolio):
