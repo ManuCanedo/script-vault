@@ -21,27 +21,6 @@ def calculate_covariance_matrix(daily_returns):
     return covariance_matrix
 
 
-def efficient_frontier(
-    mean_returns, cov_matrix, num_portfolios=10000, risk_free_rate=0.02
-):
-    np.random.seed(42)
-    num_assets = len(mean_returns)
-    results = np.zeros((3, num_portfolios))
-
-    for i in range(num_portfolios):
-        weights = np.random.random(num_assets)
-        weights /= np.sum(weights)
-        portfolio_return = np.sum(mean_returns * weights) * 252
-        portfolio_std_dev = np.sqrt(
-            np.dot(weights.T, np.dot(cov_matrix, weights))
-        ) * np.sqrt(252)
-        results[0, i] = portfolio_std_dev
-        results[1, i] = portfolio_return
-        results[2, i] = (portfolio_return - risk_free_rate) / portfolio_std_dev
-
-    return results
-
-
 def optimal_allocation(mean_returns, cov_matrix, risk_free_rate=0.02):
     num_assets = len(mean_returns)
     args = (mean_returns, cov_matrix, risk_free_rate)
@@ -67,11 +46,36 @@ def neg_sharpe_ratio(weights, mean_returns, cov_matrix, risk_free_rate):
     return -sharpe_ratio
 
 
+def efficient_frontier(
+    mean_returns, cov_matrix, num_portfolios=10, risk_free_rate=0.02
+):
+    np.random.seed(42)
+    num_assets = len(mean_returns)
+    results = np.zeros((3 + num_assets, num_portfolios))
+
+    for i in range(num_portfolios):
+        weights = np.random.random(num_assets)
+        weights /= np.sum(weights)
+        portfolio_return = np.sum(mean_returns * weights) * 252
+        portfolio_std_dev = np.sqrt(
+            np.dot(weights.T, np.dot(cov_matrix, weights))
+        ) * np.sqrt(252)
+        results[0, i] = portfolio_std_dev
+        results[1, i] = portfolio_return
+        results[2, i] = (portfolio_return - risk_free_rate) / portfolio_std_dev
+        results[3:, i] = weights
+
+    return results
+
+
 def main(stock_list, start_date, end_date):
     stock_data = fetch_stock_data(stock_list, start_date, end_date)
     daily_returns = calculate_daily_returns(stock_data)
-    mean_returns = daily_returns.mean()
-    cov_matrix = calculate_covariance_matrix(daily_returns)
+
+    # Reorder mean_returns and cov_matrix according to the stock_list
+    mean_returns = daily_returns.mean()[stock_list]
+    cov_matrix = daily_returns.cov().reindex(stock_list, axis=0).reindex(stock_list, axis=1)
+
     optimal_weights = optimal_allocation(mean_returns, cov_matrix)
 
     # Calculate risk, return, and Sharpe Ratio for the optimal portfolio
@@ -85,7 +89,7 @@ def main(stock_list, start_date, end_date):
     frontier_data = efficient_frontier(mean_returns, cov_matrix)
 
     return (
-        optimal_weights,
+        {stock: weight for stock, weight in zip(stock_list, optimal_weights)},
         frontier_data,
         (portfolio_std_dev, portfolio_return, sharpe_ratio),
     )
@@ -114,37 +118,16 @@ def display_frontier_table(stock_list, frontier_data, top_n=5):
     print(df)
 
 
-def efficient_frontier(
-    mean_returns, cov_matrix, num_portfolios=10, risk_free_rate=0.02
-):
-    np.random.seed(42)
-    num_assets = len(mean_returns)
-    results = np.zeros((3 + num_assets, num_portfolios))
-
-    for i in range(num_portfolios):
-        weights = np.random.random(num_assets)
-        weights /= np.sum(weights)
-        portfolio_return = np.sum(mean_returns * weights) * 252
-        portfolio_std_dev = np.sqrt(
-            np.dot(weights.T, np.dot(cov_matrix, weights))
-        ) * np.sqrt(252)
-        results[0, i] = portfolio_std_dev
-        results[1, i] = portfolio_return
-        results[2, i] = (portfolio_return - risk_free_rate) / portfolio_std_dev
-        results[3:, i] = weights
-
-    return results
-
-
-stock_list = ["VEVE.L", "BRK-B", "TSLA", "MSFT"]
-start_date = "2016-01-01"
-end_date = "2023-03-15"
+stock_list = ["TSLA", "VEVE.L", "BRK-B", "MSFT"]
+start_date = "2013-01-01"
+end_date = "2022-12-31"
 
 optimal_weights, frontier_data, optimal_portfolio_metrics = main(
     stock_list, start_date, end_date
 )
 print("Optimal weights:")
-print(optimal_weights)
+for stock, weight in optimal_weights.items():
+    print(f"{stock}: {weight:.6f}")
 
 # Print optimal portfolio metrics
 print("\nOptimal Portfolio Metrics:")
