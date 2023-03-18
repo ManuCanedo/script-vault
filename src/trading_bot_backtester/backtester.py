@@ -46,11 +46,16 @@ class Portfolio:
         return positions
 
     def total_allocation(self) -> Dict[str, float]:
-        return {symbol: (shares * self.value()) for symbol, shares in self.positions().items()}
+        return {
+            symbol: (shares * self.value())
+            for symbol, shares in self.positions().items()
+        }
 
 
 class Backtester:
-    def __init__(self, targets: Dict[str, float], start_date: str, end_date: str, interval: str):
+    def __init__(
+        self, targets: Dict[str, float], start_date: str, end_date: str, interval: str
+    ):
         self.targets = targets
         self.start_date = start_date
         self.end_date = end_date
@@ -66,7 +71,9 @@ class Backtester:
 
         for date in self.stocks[next(iter(self.stocks))].data.index:
             for symbol, stock in self.stocks.items():
-                stock_data = stock.get_stock_data(self.start_date, self.end_date, self.interval)
+                stock_data = stock.get_stock_data(
+                    self.start_date, self.end_date, self.interval
+                )
                 stock_price = stock_data.loc[:date, "Open"][-1]
 
                 if sell_fn(stock_data, portfolio):

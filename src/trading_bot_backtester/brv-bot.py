@@ -42,16 +42,14 @@ def is_buy(stock, data, portfolio) -> bool:
     ema = calculate_ema(data)
     macd, signal_line = calculate_macd(data)
 
-    if (
-        math.isnan(rsi)
-        or rsi > 30
-        or price > sma
-        or price > ema
-        or macd < signal_line
-    ):
+    if math.isnan(rsi) or rsi > 30 or price > sma or price > ema or macd < signal_line:
         return False
 
-    mean_buy_price = price if len(portfolio.positions()[stock.symbol]) == 0 else min(portfolio.positions()[stock.symbol])
+    mean_buy_price = (
+        price
+        if len(portfolio.positions()[stock.symbol]) == 0
+        else min(portfolio.positions()[stock.symbol])
+    )
     current_allocation = portfolio.allocation(stock.symbol)
     target_allocation = backtester.targets.get(stock.symbol, 0)
 
@@ -84,13 +82,7 @@ def is_sell(stock, data, portfolio) -> bool:
     ema = calculate_ema(data)
     macd, signal_line = calculate_macd(data)
 
-    if (
-        math.isnan(rsi)
-        or rsi < 70
-        or price < sma
-        or price < ema
-        or macd > signal_line
-    ):
+    if math.isnan(rsi) or rsi < 70 or price < sma or price < ema or macd > signal_line:
         return False
 
     positions = portfolio.positions()
