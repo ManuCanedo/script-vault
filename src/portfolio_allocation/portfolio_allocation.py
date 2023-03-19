@@ -1,9 +1,8 @@
+from scipy.optimize import minimize
+
 import matplotlib.pyplot as plt
 import numpy as np
-import pandas as pd
 import yfinance as yf
-
-from scipy.optimize import minimize
 
 
 def fetch_stock_data(stock_list, start_date, end_date):
@@ -115,20 +114,21 @@ def plot_efficient_frontier(frontier_data, optimal_portfolio_metrics):
     plt.show()
 
 
-stock_list = ["TSLA", "VEVE.L", "SPY", "BRK-B", "MSFT"]
-start_date = "2013-01-01"
-end_date = "2022-12-31"
+if __name__ == "__main__":
+    stock_list = ["TSLA", "VEVE.L", "SPY", "BRK-B", "MSFT"]
+    start_date = "2013-01-01"
+    end_date = "2022-12-31"
 
-optimal_weights, frontier_data, optimal_portfolio_metrics = main(
-    stock_list, start_date, end_date
-)
-print("Optimal weights:")
-for stock, weight in optimal_weights.items():
-    print(f"{stock}: {weight:.6f}")
+    optimal_weights, frontier_data, optimal_portfolio_metrics = main(
+        stock_list, start_date, end_date
+    )
+    print("Optimal weights:")
+    for stock, weight in optimal_weights.items():
+        print(f"{stock}: {weight:.6f}")
 
-print("\nOptimal Portfolio Metrics:")
-print(f"Risk: {optimal_portfolio_metrics[0]:.6f}")
-print(f"Return: {optimal_portfolio_metrics[1]:.6f}")
-print(f"Sharpe Ratio: {optimal_portfolio_metrics[2]:.6f}")
+    print("\nOptimal Portfolio Metrics:")
+    print(f"Risk: {optimal_portfolio_metrics[0]:.6f}")
+    print(f"Return: {optimal_portfolio_metrics[1]:.6f}")
+    print(f"Sharpe Ratio: {optimal_portfolio_metrics[2]:.6f}")
 
-plot_efficient_frontier(frontier_data, optimal_portfolio_metrics)
+    plot_efficient_frontier(frontier_data, optimal_portfolio_metrics)

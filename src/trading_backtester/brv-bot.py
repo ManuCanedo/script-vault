@@ -1,6 +1,7 @@
 from backtester import Backtester
-import random
+
 import math
+import random
 
 
 def calculate_rsi(data):
